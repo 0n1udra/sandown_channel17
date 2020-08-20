@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 agenda_file = '/home/slime/git/sandown_channel17/discord_bot/scripts/latest_agendas.txt'
 
-def get_agendas(total=5):
+def get_agendas(total=3):
     meetings = []
 
     # Requests sandown.us/minutes-and-agenda.
@@ -23,12 +23,19 @@ def get_agendas(total=5):
 
         for name, date in zip(file_names, file_dates):
             for url in name.find_all('a'):
+                # Get's just the url str from tag
                 file_url = sandown_url + url.get('href')
-            meetings.append([name.text, dt.strptime((date.text), '%B %d, %Y - %I:%M%p'), file_url])
+                # Converts string to datetime object
+                agenda_date = dt.strptime((date.text), '%B %d, %Y - %I:%M%p')
+            meetings.append([name.text, agenda_date, file_url])
 
     meetings.sort(key=lambda x: x[1])
-    return meetings[-total:]
 
+    # Format datetime look
+    for i in range(len(meetings)):
+        meetings[i][1] = meetings[i][1].strftime('%a %d/%m %H:%M')
+
+    return meetings[-total:]
 
 def check_new():
     read_data = ''
@@ -47,7 +54,7 @@ def check_new():
 
 def show_agendas():
     for i in get_agendas():
-        print(f'{i[1]} | {i[0]}, {i[2]}')
+        print(f'{i[1]} | {i[0]}: {i[2]}')
 
 
 if __name__ == '__main__':
@@ -55,4 +62,6 @@ if __name__ == '__main__':
         print("New agendas found")
     else:
         print("No new agendas.")
-    
+
+    show_agendas()
+

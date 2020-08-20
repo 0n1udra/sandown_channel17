@@ -31,16 +31,21 @@ async def on_ready():
 
 
 # Fetches latest agenda and puts in discord embed
-async def fetch_agendas():
+async def fetch_agendas(amount=3):
     global latest_agenda
-    agenda = ga.get_agendas()[-1]
+    agenda = ga.get_agendas()
     embed = discord.Embed(
             title = 'Latest Agenda',
             )
-    embed.add_field(name=agenda[0], value=agenda[1], inline=False)
-    embed.add_field(name='Link:', value=agenda[2])
+    for i in range(amount):
 
-    sprint("Fetching latest Sandown agenda")
+        embed.add_field(
+                name=agenda[i][0], 
+                value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}',
+                inline=False
+                )
+
+    sprint("Fetching latest agendas")
     latest_agenda = embed
 
 # Checks if new agenda has been added.
