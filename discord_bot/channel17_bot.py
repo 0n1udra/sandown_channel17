@@ -33,7 +33,7 @@ async def on_ready():
 # Fetches latest agenda and puts in discord embed
 async def fetch_agendas(amount=3):
     global latest_agenda
-    agenda = ga.get_agendas()
+    agenda = ga.get_agendas(amount)
     embed = discord.Embed(
             title = 'Latest Agenda',
             )
@@ -59,9 +59,9 @@ async def check_new_agendas():
 
 # Show latest agenda.
 @bot.command(aliases=['ga', 'agenda', 'latest agenda'])
-async def latest_agenda(ctx):
+async def latest_agenda(ctx, amount=3):
     await ctx.send('Fetching...')
-    await fetch_agendas()
+    await fetch_agendas(amount)
     await ctx.send(embed=latest_agenda)
 
 
