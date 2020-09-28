@@ -1,7 +1,5 @@
-import discord
+import discord, asyncio
 from discord.ext import commands, tasks
-from itertools import cycle
-import asyncio
 from datetime import datetime
 import scripts.get_agendas as ga
 
@@ -9,16 +7,17 @@ with open('/home/slime/channel17_bot_token.txt', 'r') as file:
     TOKEN = file.readline()
 
 def sprint(msg):
-    print(datetime.today(), '|', msg)
+    print(f'{datetime.today()} | {msg}')
 
 if not TOKEN:
-    print("No Token")
+    print("Token Error.")
     exit()
 
 bot = commands.Bot(command_prefix='.')
+
 # Channel to for check_new_agenda loop
 update_channel = None
-# Latest agenda discord embed object
+# Latest agenda Discord embed object
 latest_agenda = None
 
 @bot.event
@@ -30,15 +29,12 @@ async def on_ready():
     check_new_agendas.start()
 
 
-# Fetches latest agenda and puts in discord embed
+# Fetches latest agenda and puts in Discord embed
 async def fetch_agendas(amount=3):
     global latest_agenda
     agenda = ga.get_agendas(amount)
-    embed = discord.Embed(
-            title = 'Latest Agenda',
-            )
+    embed = discord.Embed(title = 'Latest Agenda')
     for i in range(amount):
-
         embed.add_field(
                 name=agenda[i][0], 
                 value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}',
