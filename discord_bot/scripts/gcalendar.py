@@ -47,6 +47,12 @@ def main():
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(start, event['summary'])
 
+def add_event(name, start, end):
+    event = {
+        'summary': name,
+        'start': {'dateTime': '2015-05-28T09:00:00'},
+        'end': {'dateTime': '2015-05-28T17:00:00'}
+    }
 
 if __name__ == '__main__':
     main()
