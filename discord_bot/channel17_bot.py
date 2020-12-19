@@ -3,7 +3,8 @@ from discord.ext import commands, tasks
 from datetime import datetime
 import scripts.get_agendas as ga
 
-with open('/home/slime/channel17_bot_token.txt', 'r') as file:
+home_dir = os.getenv('HOME')
+with open(f'{home_dir}/channel17_bot.token', 'r') as file:
     TOKEN = file.readline()
 
 def sprint(msg):
@@ -11,7 +12,7 @@ def sprint(msg):
 
 if not TOKEN:
     print("Token Error.")
-    exit()
+    exit(1)
 
 bot = commands.Bot(command_prefix='.')
 
@@ -30,7 +31,7 @@ async def on_ready():
 
 
 # Fetches latest agenda and puts in Discord embed
-async def fetch_agendas(amount=3):
+async def fetch_agendas(amount=8):
     global latest_agenda
     agenda = ga.get_agendas(amount)
     embed = discord.Embed(title = 'Latest Agenda')
@@ -55,7 +56,7 @@ async def check_new_agendas():
 
 # Show latest agenda.
 @bot.command(aliases=['ga', 'agenda', 'latest agenda'])
-async def latest_agenda(ctx, amount=3):
+async def latest_agenda(ctx, amount=5):
     await ctx.send('Fetching...')
     await fetch_agendas(amount)
     await ctx.send(embed=latest_agenda)
