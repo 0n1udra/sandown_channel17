@@ -33,7 +33,7 @@ def get_agendas(total=3):
 
     # Format datetime look
     for i in range(len(meetings)):
-        meetings[i][1] = meetings[i][1].strftime('%a %d/%m %H:%M')
+        meetings[i][1] = meetings[i][1].strftime('%a %m/%d %H:%M')
 
     return meetings[-total:]
 
