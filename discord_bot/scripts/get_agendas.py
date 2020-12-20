@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 
 agenda_file = '/home/slime/git/sandown_channel17/discord_bot/scripts/latest_agendas.txt'
 
+
 def get_agendas(total=3):
     meetings = []
 
@@ -16,7 +17,7 @@ def get_agendas(total=3):
     for i in div_agenda[0].find_all('a'):
         current_url = f"{i.get('href')}/{dt.today().year}"
 
-        #Extracts name and date of meeting.
+        # Extracts name and date of meeting.
         data = BeautifulSoup(requests.get(current_url).text, "html.parser")
         file_dates = data.find_all('div', class_='field-content')
         file_names = data.find_all('h3')
@@ -26,7 +27,7 @@ def get_agendas(total=3):
                 # Get's just the url str from tag
                 file_url = sandown_url + url.get('href')
                 # Converts string to datetime object
-                agenda_date = dt.strptime((date.text), '%B %d, %Y - %I:%M%p')
+                agenda_date = dt.strptime(date.text, '%B %d, %Y - %I:%M%p')
             meetings.append([name.text, agenda_date, file_url])
 
     meetings.sort(key=lambda x: x[1])
@@ -36,6 +37,7 @@ def get_agendas(total=3):
         meetings[i][1] = meetings[i][1].strftime('%a %m/%d %H:%M')
 
     return meetings[-total:]
+
 
 def check_new():
     read_data = ''
@@ -64,4 +66,3 @@ if __name__ == '__main__':
         print("No new agendas.")
 
     show_agendas()
-

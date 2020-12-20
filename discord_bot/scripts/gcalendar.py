@@ -34,11 +34,11 @@ def main():
     service = build('calendar', 'v3', credentials=creds)
 
     # Call the Calendar API
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
     print('Getting the upcoming 10 events')
     events_result = service.events().list(calendarId='primary', timeMin=now,
-                                        maxResults=10, singleEvents=True,
-                                        orderBy='startTime').execute()
+                                          maxResults=10, singleEvents=True,
+                                          orderBy='startTime').execute()
     events = events_result.get('items', [])
 
     if not events: print('No upcoming events found.')
@@ -47,12 +47,14 @@ def main():
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(start, event['summary'])
 
+
 def add_event(name, start, end):
     event = {
         'summary': name,
         'start': {'dateTime': '2015-05-28T09:00:00'},
         'end': {'dateTime': '2015-05-28T17:00:00'}
     }
+
 
 if __name__ == '__main__':
     main()

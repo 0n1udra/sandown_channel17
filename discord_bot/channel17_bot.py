@@ -7,8 +7,10 @@ home_dir = os.getenv('HOME')
 with open(f'{home_dir}/channel17_bot.token', 'r') as file:
     TOKEN = file.readline()
 
+
 def sprint(msg):
     print(f'{datetime.today()} | {msg}')
+
 
 if not TOKEN:
     print("Token Error.")
@@ -20,6 +22,7 @@ bot = commands.Bot(command_prefix='.')
 update_channel = None
 # Latest agenda Discord embed object
 latest_agenda = None
+
 
 @bot.event
 async def on_ready():
@@ -34,16 +37,17 @@ async def on_ready():
 async def fetch_agendas(amount=8):
     global latest_agenda
     agenda = ga.get_agendas(amount)
-    embed = discord.Embed(title = 'Latest Agenda')
+    embed = discord.Embed(title='Latest Agenda')
     for i in range(amount):
         embed.add_field(
-                name=agenda[i][0], 
-                value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}',
-                inline=False
-                )
+            name=agenda[i][0],
+            value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}',
+            inline=False
+        )
 
     sprint("Fetching latest agendas")
     latest_agenda = embed
+
 
 # Checks if new agenda has been added.
 @tasks.loop(hours=12)
@@ -53,6 +57,7 @@ async def check_new_agendas():
         sprint("New agenda found.")
         await fetch_agendas()
         await update_channel.send(embed=latest_agenda)
+
 
 # Show latest agenda.
 @bot.command(aliases=['ga', 'agenda', 'latest agenda'])
