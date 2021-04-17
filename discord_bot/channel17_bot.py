@@ -1,4 +1,4 @@
-import discord, asyncio
+import discord, asyncio, os
 from discord.ext import commands, tasks
 from datetime import datetime
 import scripts.get_agendas as ga
@@ -34,11 +34,11 @@ async def on_ready():
 
 
 # Fetches latest agenda and puts in Discord embed
-async def fetch_agendas(amount=8):
+async def fetch_agendas(amount=5):
     global latest_agenda
     agenda = ga.get_agendas(amount)
     embed = discord.Embed(title='Latest Agenda')
-    for i in range(amount):
+    for i in range(len(agenda)):
         embed.add_field(
             name=agenda[i][0],
             value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}',
