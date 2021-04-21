@@ -2,7 +2,7 @@ import requests
 from datetime import datetime as dt
 from bs4 import BeautifulSoup
 
-agenda_file = '/home/slime/git/sandown_channel17/discord_bot/scripts/latest_agendas.txt'
+agenda_file = '/mnt/c/Users/DT/git/sandown_channel17/discord_bot/scripts/latest_agendas.txt'
 
 
 def get_agendas(total=3):
@@ -40,6 +40,7 @@ def get_agendas(total=3):
 
 
 def check_new():
+    """Checks if there's a difference in latest_agenda.txt and newly pulled data from get_agendas."""
     read_data = ''
     with open(agenda_file, 'r') as file:
         read_data = file.readlines()
