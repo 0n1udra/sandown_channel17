@@ -7,10 +7,8 @@ home_dir = os.getenv('HOME')
 with open(f'{home_dir}/channel17_bot.token', 'r') as file:
     TOKEN = file.readline()
 
-
 def sprint(msg):
     print(f'{datetime.today()} | {msg}')
-
 
 if not TOKEN:
     print("Token Error.")
@@ -65,6 +63,5 @@ async def latest_agenda(ctx, amount=5):
     await ctx.send('Fetching...')
     await fetch_agendas(amount)
     await ctx.send(embed=latest_agenda)
-
 
 bot.run(TOKEN)
