@@ -58,7 +58,7 @@ async def check_new_agendas():
 
 
 # Show latest agenda.
-@bot.command(aliases=['ga', 'agenda', 'latest agenda'])
+@bot.command(aliases=['ga', 'agenda', 'latest agenda', 'agendas', 'schedule', 'get', 'fetch'])
 async def latest_agenda(ctx, amount=5):
     await ctx.send('Fetching...')
     await fetch_agendas(amount)
