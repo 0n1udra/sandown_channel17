@@ -4,7 +4,7 @@ from datetime import datetime
 import scripts.get_agendas as ga
 
 home_dir = os.getenv('HOME')
-with open(f'{home_dir}/channel17_bot.token', 'r') as file:
+with open(f'{home_dir}/keys/channel17_bot.token', 'r') as file:
     TOKEN = file.readline()
 
 def sprint(msg):
