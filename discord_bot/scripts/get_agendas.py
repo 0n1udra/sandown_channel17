@@ -2,7 +2,7 @@ import requests
 from datetime import datetime as dt
 from bs4 import BeautifulSoup
 
-agenda_file = '/mnt/c/Users/DT/git/sandown_channel17/discord_bot/scripts/latest_agendas.txt'
+agenda_file = '/home/0n1udra/git/sandown_channel17/discord_bot/scripts/latest_agendas.txt'
 
 
 def get_agendas(total=3):
