@@ -9,7 +9,7 @@ with open(f'{os.getenv("HOME")}/keys/channel17_bot.token', 'r') as file:
 def sprint(msg): print(f'{datetime.today()} | {msg}')
 
 # ========== Web Scraper
-agenda_file = '/sandown_channel17/source/latest_agendas.txt'
+agenda_file = './sandown_channel17/source/latest_agendas.txt'
 
 def get_agendas(total=3):
     meetings = []
@@ -106,12 +106,13 @@ async def latest_agenda(ctx, amount=5):
     await fetch_agendas(amount)
     await ctx.send(embed=latest_agenda)
 
-bot.run(TOKEN)
 
 if __name__ == '__main__':
-    if 'agendas' in sys.argv:
+    if 'agenda' in sys.argv:
         for i in get_agendas(): print(f'{i[1]} | {i[0]}: {i[2]}')
-        sys.exit()
+    else:
+        bot.run(TOKEN)
+
 
 
 
