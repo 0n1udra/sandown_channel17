@@ -1,15 +1,25 @@
 import requests, discord, sys, os
 from discord.ext import commands, tasks
+from discord_components import DiscordComponents, Button, ButtonStyle,  Select, SelectOption, ComponentsBot
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-with open(f'{os.getenv("HOME")}/keys/channel17_bot.token', 'r') as file:
-    TOKEN = file.readline()
+token_file = f'{os.getenv("HOME")}/keys/channel17_bot.token'
 
-def sprint(msg): print(f'{datetime.today()} | {msg}')
+if os.path.isfile(token_file):
+    with open(token_file, 'r') as file: TOKEN = file.readline()
+else:
+    print("Missing Token File:", token_file)
+    sys.exit()
+
+channel_id = 745699017811296319
+
+bot = ComponentsBot(command_prefix='.')
+
+def lprint(msg): print(f'{datetime.today()} | {msg}')
 
 # ========== Web Scraper
-agenda_file = './sandown_channel17/source/latest_agendas.txt'
+agenda_file = os.path.dirname(os.path.abspath(__file__)) + '/latest_agendas.txt'
 
 def get_agendas(total=3):
     meetings = []
@@ -59,26 +69,29 @@ def check_new():
             file.write(str(agenda_data))
         return True
 
-
 # ========== Discord Bot
-if not TOKEN:
-    print("Token Error.")
-    sys.exit()
-
-bot = commands.Bot(command_prefix='.')
-
-# Channel to for check_new_agenda loop
-update_channel = None
+# Channel for check_new_agenda loop
+channel = None
 # Latest agenda Discord embed object
 latest_agenda = None
 
 @bot.event
 async def on_ready():
-    global update_channel
-    sprint("Bot Connected.")
+    global channel
+    lprint("Bot Connected.")
     await bot.wait_until_ready()
-    update_channel = bot.get_channel(745699017811296319)
+    channel = bot.get_channel(channel_id)
+    await channel.send('**Bot PRIMED** :white_check_mark:')
     check_new_agendas.start()
+
+@bot.event
+async def on_button_click(interaction):
+    # Need to respond with type=6, or proceeding code will execute twice.
+    await interaction.respond(type=6)
+
+    ctx = await bot.get_context(interaction.message)
+    await ctx.invoke(bot.get_command(str(interaction.custom_id)))
+
 
 # Fetches latest agenda and puts in Discord embed
 async def fetch_agendas(amount=5):
@@ -87,17 +100,19 @@ async def fetch_agendas(amount=5):
     embed = discord.Embed(title='Latest Agenda')
     for i in range(len(agenda)):
         embed.add_field(name=agenda[i][0], value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}', inline=False)
-    sprint("Fetching latest agendas")
+    lprint("Fetching latest agendas")
     latest_agenda = embed
 
 # Checks if new agenda has been added.
 @tasks.loop(hours=12)
 async def check_new_agendas():
-    sprint("Checking for new agendas")
+    lprint("Checking for new agendas")
     if check_new():
-        sprint("New agenda found.")
+        lprint("New agenda found.")
         await fetch_agendas()
-        await update_channel.send(embed=latest_agenda)
+        await channel.send(embed=latest_agenda)
+        await channel.send(content='Click to check for new agendas.',
+                              components=[Button(label="Check", emoji='\U0001F504', custom_id="latest_agenda"), ])
 
 # Show latest agenda.
 @bot.command(aliases=['ga', 'agenda', 'latest agenda', 'agendas', 'schedule', 'get', 'fetch'])
@@ -105,6 +120,8 @@ async def latest_agenda(ctx, amount=5):
     await ctx.send('Fetching...')
     await fetch_agendas(amount)
     await ctx.send(embed=latest_agenda)
+    await channel.send(content='Click to check for new agendas.',
+                              components=[Button(label="Check", emoji='\U0001F504', custom_id="latest_agenda"), ])
 
 
 if __name__ == '__main__':
