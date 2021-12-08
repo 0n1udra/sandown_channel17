@@ -111,16 +111,16 @@ async def check_new_agendas():
         lprint("New agenda found.")
         await fetch_agendas()
         await channel.send(embed=latest_agenda)
-        await channel.send(content='Click to check for new agendas.',
+        await channel.send(content='Click to check for new agendas, or use `.check`',
                               components=[Button(label="Check", emoji='\U0001F504', custom_id="latest_agenda"), ])
 
 # Show latest agenda.
-@bot.command(aliases=['ga', 'agenda', 'latest agenda', 'agendas', 'schedule', 'get', 'fetch'])
+@bot.command(aliases=['check', 'ga', 'agenda', 'latest agenda', 'agendas', 'schedule', 'get', 'fetch'])
 async def latest_agenda(ctx, amount=5):
     await ctx.send('Fetching...')
     await fetch_agendas(amount)
     await ctx.send(embed=latest_agenda)
-    await channel.send(content='Click to check for new agendas.',
+    await channel.send(content='Click to check for new agendas, or use `.check`',
                               components=[Button(label="Check", emoji='\U0001F504', custom_id="latest_agenda"), ])
 
 
