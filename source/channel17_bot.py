@@ -54,10 +54,11 @@ def get_agendas(total=5):
 
     return meetings[-total:]
 
-def check_if_new(*_):
+def check_if_new(amount=5, force=False, *_):
     """Checks if there's a difference in latest_agenda.txt and newly pulled data from get_agendas."""
 
-    agenda_data = get_agendas()
+    agenda_data = get_agendas(amount)
+    if force: return agenda_data
 
     read_data = ''
     with open(agenda_file, 'r') as file:
@@ -86,18 +87,31 @@ async def on_button_click(interaction):
     # Need to respond with type=6, or proceeding code will execute twice.
     await interaction.respond(type=6)
     ctx = await bot.get_context(interaction.message)
+    await ctx.send('***Checking...***')
     await ctx.invoke(bot.get_command(str(interaction.custom_id)))
 
-# Fetches latest agenda and puts in Discord embed
 @tasks.loop(hours=6)
 async def check_hourly():
+    lprint('Check Task')
     ctx = await bot.get_context(channel.last_message)
-    await ctx.invoke(bot.get_command('fetch_agendas'))
 
-@bot.command(aliases=['check', 'ga', 'agenda', 'latest agenda', 'agendas', 'schedule', 'get', 'fetch'])
+    if check_if_new(5):  # Checks newly scraped data is different from latest_agendas.txt file.
+        await ctx.invoke(bot.get_command('fetch_agendas'))
+
+@bot.command(aliases=['fetch', 'get'])
 async def fetch_agendas(ctx, amount=5):
-    lprint("Checking for new agendas...")
-    await ctx.send('Checking...')
+    if agenda := check_if_new(amount, force=True):
+        embed = discord.Embed(title='Latest Agendas')
+        for i in range(len(agenda)):
+            embed.add_field(name=agenda[i][0], value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}', inline=False)
+        await ctx.send(embed=embed)
+        await ctx.send(content='Click to check for new agendas, or use `.check`',
+                       components=[Button(label="Check", emoji='\U0001F504', custom_id="fetch_agendas"), ])
+        lprint("Fetched Agenda")
+
+@bot.command(aliases=['check'])
+async def check_agendas(ctx, amount=5):
+    lprint("Checking...")
     if agenda := check_if_new(amount):  # Checks newly scraped data is different from latest_agendas.txt file.
         embed = discord.Embed(title='Latest Agendas')
         for i in range(len(agenda)):
@@ -105,8 +119,17 @@ async def fetch_agendas(ctx, amount=5):
         await ctx.send(embed=embed)
         lprint("Agendas updated")
     else: await ctx.send('No new agendas found.')
-    await channel.send(content='Click to check for new agendas, or use `.check`',
-                       components=[Button(label="Check", emoji='\U0001F504', custom_id="fetch_agendas"), ])
+    await ctx.send(content='Click to check for new agendas, or use `.check`',
+                   components=[Button(label="Check", emoji='\U0001F504', custom_id="fetch_agendas"), ])
+
+@bot.command(aliases=['rbot', 'rebootbot', 'botrestart', 'botreboot'])
+async def restartbot(ctx, now=''):
+    """Restart this bot."""
+
+    lprint("Restarting bot...")
+
+    os.chdir(os.getcwd())
+    os.execl(sys.executable, sys.executable, *sys.argv)
 
 bot.run(TOKEN)
 
