@@ -12,7 +12,7 @@ else:
     print("Missing Token File:", token_file)
     sys.exit()
 
-channel_id = 745699017811296319
+channel_id = 953008727814987887
 
 bot = ComponentsBot(command_prefix='.')
 
@@ -138,6 +138,19 @@ async def restartbot(ctx, now=''):
 
     os.chdir(os.getcwd())
     os.execl(sys.executable, sys.executable, *sys.argv)
+
+
+@commands.command(aliases=['updatebot', 'botupdate', 'git', 'update'])
+async def gitupdate(self, ctx):
+    """Gets update from GitHub."""
+
+    await ctx.send("***Updating from GitHub...*** :arrows_counterclockwise:")
+
+    os.chdir(os.getcwd())
+    os.system('git pull')
+
+    await ctx.invoke(self.bot.get_command("restartbot"))
+
 
 bot.run(TOKEN)
 
