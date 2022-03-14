@@ -30,6 +30,9 @@ def get_agendas(total=5):
     soup = BeautifulSoup(sandown_website.text, 'html.parser')
     # Only gets links for schedules in Agendas column.
     div_agenda = soup.find_all('div', class_='minutes-agendas-second-column')
+    if not div_agenda:
+        lprint("Error scraping site.")
+        return False
     for i in div_agenda[0].find_all('a'):
         current_url = f"{i.get('href')}/{datetime.today().year}"
 
@@ -58,6 +61,7 @@ def check_if_new(amount=5, force=False, *_):
     """Checks if there's a difference in latest_agenda.txt and newly pulled data from get_agendas."""
 
     agenda_data = get_agendas(amount)
+    if not agenda_data: return False
     if force: return agenda_data
 
     read_data = ''
