@@ -6,3 +6,5 @@
 *.pickle
 
 *.swp
+
+source/latest_agendas.txt
