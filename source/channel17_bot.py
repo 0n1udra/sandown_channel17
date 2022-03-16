@@ -5,6 +5,9 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 token_file = f'{os.getenv("HOME")}/keys/channel17_bot.token'
+agenda_file = os.path.dirname(os.path.abspath(__file__)) + '/latest_agendas.txt'
+main_channel_id = 745699017811296319
+priv_channel_id = 953008727814987887
 
 if os.path.isfile(token_file):
     with open(token_file, 'r') as file: TOKEN = file.readline()
@@ -12,21 +15,18 @@ else:
     print("Missing Token File:", token_file)
     sys.exit()
 
-channel_id = 953008727814987887
-
 bot = ComponentsBot(command_prefix='.')
 
 def lprint(msg): print(f'{datetime.today()} | {msg}')
 
 # ========== Web Scraper
-agenda_file = os.path.dirname(os.path.abspath(__file__)) + '/latest_agendas.txt'
 
-def get_agendas(total=5):
+def scrape_agendas(total=5):
     meetings = []
 
     # Requests sandown.us/minutes-and-agenda.
-    sandown_website = requests.get('https://www.sandown.us/minutes-and-agendas')
-    sandown_url = 'https://www.sandown.us'
+    sandown_website = requests.get('http://www.sandown.us/minutes-and-agendas')
+    sandown_url = 'http://www.sandown.us'
     soup = BeautifulSoup(sandown_website.text, 'html.parser')
     # Only gets links for schedules in Agendas column.
     div_agenda = soup.find_all('div', class_='minutes-agendas-second-column')
@@ -54,19 +54,23 @@ def get_agendas(total=5):
     # Format datetime look
     for i in range(len(meetings)):
         meetings[i][1] = meetings[i][1].strftime('%a %m/%d %H:%M')
-
     return meetings[-total:]
 
-def check_if_new(amount=5, force=False, *_):
-    """Checks if there's a difference in latest_agenda.txt and newly pulled data from get_agendas."""
 
-    agenda_data = get_agendas(amount)
-    if not agenda_data: return False  # If no data was recieved from get_agendas()
+def check_if_new(amount=5, force=False, *_):
+    """Checks if there's a difference in latest_agenda.txt and newly pulled data from scrape_agendas."""
+
+    agenda_data = scrape_agendas(amount)
+    if not agenda_data: return False  # If no data was recieved from scrape_agendas()
     if force: return agenda_data  # Returns data without checking against agenda_file.
 
     read_data = ''
-    with open(agenda_file, 'r') as file:
-        read_data = file.readlines()
+    with open(agenda_file, 'r') as file: read_data = file.readlines()
+
+    if str(agenda_data) not in read_data:
+        with open(agenda_file, 'w') as file:
+            file.write(str(agenda_data))
+            return agenda_data
 
     if str(agenda_data) not in read_data:
         with open(agenda_file, 'w') as file:
@@ -75,15 +79,16 @@ def check_if_new(amount=5, force=False, *_):
     else: return False
 
 # ========== Discord Bot
-channel = None
+main_channel = priv_channel = None
 
 @bot.event
 async def on_ready():
-    global channel
+    global main_channel, priv_channel
     lprint("Bot Connected.")
     await bot.wait_until_ready()
-    channel = bot.get_channel(channel_id)
-    await channel.send('**Bot PRIMED** :white_check_mark:')
+    main_channel = bot.get_channel(main_channel_id)
+    priv_channel = bot.get_channel(priv_channel_id)
+    await priv_channel.send('**Bot PRIMED** :white_check_mark:')
     check_hourly.start()
 
 @bot.event
@@ -97,10 +102,11 @@ async def on_button_click(interaction):
 @tasks.loop(hours=6)
 async def check_hourly():
     lprint('Check Task')
-    ctx = await bot.get_context(channel.last_message)
+    message = await main_channel.fetch_message(main_channel.last_message_id)
+    ctx = await bot.get_context(message)
 
     if check_if_new(5):  # Checks newly scraped data is different from latest_agendas.txt file.
-        await ctx.invoke(bot.get_command('fetch_agendas'))
+        await ctx.invoke(bot.get_command('check_agendas'))
 
 @bot.command(aliases=['fetch', 'check'])
 async def check_agendas(ctx, amount=5, force=False):
@@ -111,8 +117,7 @@ async def check_agendas(ctx, amount=5, force=False):
         for i in range(len(agenda)):
             embed.add_field(name=agenda[i][0], value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}', inline=False)
         await ctx.send(embed=embed)
-        channel = bot.get_channel(745699017811296319)
-        channel.send(embed=embed)
+        #await main_channel.send(embed=embed)
     else: await ctx.send('No new agendas found.')
 
     await ctx.send(content='Click to check for new agendas, or use `.check`',
@@ -123,7 +128,7 @@ async def check_agendas(ctx, amount=5, force=False):
 @bot.command(aliases=['get', 'agendas'])
 async def get_agendas(ctx):
     """Shows agendas."""
-    await ctx.invoke(bot.get_command('agendas'), force=True)
+    await ctx.invoke(bot.get_command('check_agendas'), force=True)
 
 @bot.command(aliases=['rbot', 'rebootbot', 'botrestart', 'botreboot'])
 async def restartbot(ctx, now=''):
@@ -142,7 +147,3 @@ async def gitupdate(self, ctx):
 
 
 bot.run(TOKEN)
-
-
-
-
