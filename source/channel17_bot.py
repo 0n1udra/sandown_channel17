@@ -103,7 +103,7 @@ async def check_hourly():
         await ctx.invoke(bot.get_command('fetch_agendas'))
 
 @bot.command(aliases=['fetch', 'check'])
-async def agendas(ctx, amount=5, force=False):
+async def check_agendas(ctx, amount=5, force=False):
     """Shows current agendas in embed if new ones found."""
 
     if agenda := check_if_new(amount, force):
