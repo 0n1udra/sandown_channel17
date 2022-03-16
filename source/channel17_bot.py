@@ -61,8 +61,8 @@ def check_if_new(amount=5, force=False, *_):
     """Checks if there's a difference in latest_agenda.txt and newly pulled data from get_agendas."""
 
     agenda_data = get_agendas(amount)
-    if not agenda_data: return False
-    if force: return agenda_data
+    if not agenda_data: return False  # If no data was recieved from get_agendas()
+    if force: return agenda_data  # Returns data without checking against agenda_file.
 
     read_data = ''
     with open(agenda_file, 'r') as file:
@@ -102,53 +102,42 @@ async def check_hourly():
     if check_if_new(5):  # Checks newly scraped data is different from latest_agendas.txt file.
         await ctx.invoke(bot.get_command('fetch_agendas'))
 
-@bot.command(aliases=['fetch', 'get'])
-async def fetch_agendas(ctx, amount=5):
-    """Shows current agendas in embed (even if not new)."""
+@bot.command(aliases=['fetch', 'check'])
+async def agendas(ctx, amount=5, force=False):
+    """Shows current agendas in embed if new ones found."""
 
-    if agenda := check_if_new(amount, force=True):
+    if agenda := check_if_new(amount, force):
         embed = discord.Embed(title='Latest Agendas')
         for i in range(len(agenda)):
             embed.add_field(name=agenda[i][0], value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}', inline=False)
         await ctx.send(embed=embed)
-        await ctx.send(content='Click to check for new agendas, or use `.check`',
-                       components=[Button(label="Check", emoji='\U0001F504', custom_id="check_agendas"), ])
-        lprint("Fetched Agenda")
-
-@bot.command(aliases=['check'])
-async def check_agendas(ctx, amount=5):
-    """If new agendas found, shows embed."""
-
-    lprint("Checking...")
-    if agenda := check_if_new(amount):  # Checks newly scraped data is different from latest_agendas.txt file.
-        embed = discord.Embed(title='Latest Agendas')
-        for i in range(len(agenda)):
-            embed.add_field(name=agenda[i][0], value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}', inline=False)
-        await ctx.send(embed=embed)
-        lprint("Agendas updated")
+        channel = bot.get_channel(745699017811296319)
+        channel.send(embed=embed)
     else: await ctx.send('No new agendas found.')
+
     await ctx.send(content='Click to check for new agendas, or use `.check`',
                    components=[Button(label="Check", emoji='\U0001F504', custom_id="check_agendas"), ])
+
+    lprint("Fetched Agenda")
+
+@bot.command(aliases=['get', 'agendas'])
+async def get_agendas(ctx):
+    """Shows agendas."""
+    await ctx.invoke(bot.get_command('agendas'), force=True)
 
 @bot.command(aliases=['rbot', 'rebootbot', 'botrestart', 'botreboot'])
 async def restartbot(ctx, now=''):
     """Restart this bot."""
-
     lprint("Restarting bot...")
-
     os.chdir(os.getcwd())
     os.execl(sys.executable, sys.executable, *sys.argv)
-
 
 @commands.command(aliases=['updatebot', 'botupdate', 'git', 'update'])
 async def gitupdate(self, ctx):
     """Gets update from GitHub."""
-
     await ctx.send("***Updating from GitHub...*** :arrows_counterclockwise:")
-
     os.chdir(os.getcwd())
     os.system('git pull')
-
     await ctx.invoke(self.bot.get_command("restartbot"))
 
 
