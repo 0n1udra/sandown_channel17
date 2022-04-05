@@ -1,4 +1,4 @@
-import requests, discord, sys, os
+import requests, discord, random, sys, os
 from discord.ext import commands, tasks
 from discord_components import DiscordComponents, Button, ButtonStyle,  Select, SelectOption, ComponentsBot
 from bs4 import BeautifulSoup
@@ -20,24 +20,27 @@ bot = ComponentsBot(command_prefix='.')
 def lprint(msg): print(f'{datetime.today()} | {msg}')
 
 # ========== Web Scraper
-
 def scrape_agendas(total=5):
     meetings = []
 
-    # Requests sandown.us/minutes-and-agenda.
-    sandown_website = requests.get('http://www.sandown.us/minutes-and-agendas')
+    # Requests sandown.us/minutes-and-agenda with random user agent.
+    user_agents = ["Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0",
+                   "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0",
+                   "Mozilla/5.0 (X11; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0"
+    ]
+    headers = {'User-Agent': random.choice(user_agents)}
+    sandown_website = requests.get('http://www.sandown.us/minutes-and-agendas', headers=headers)
     sandown_url = 'http://www.sandown.us'
     soup = BeautifulSoup(sandown_website.text, 'html.parser')
     # Only gets links for schedules in Agendas column.
     div_agenda = soup.find_all('div', class_='minutes-agendas-second-column')
-    if not div_agenda:
-        lprint("Error scraping site.")
-        return False
+    if not div_agenda: return False
+
     for i in div_agenda[0].find_all('a'):
         current_url = f"{i.get('href')}/{datetime.today().year}"
 
         # Extracts name and date of meeting.
-        data = BeautifulSoup(requests.get(current_url).text, "html.parser")
+        data = BeautifulSoup(requests.get(current_url, headers=headers).text, "html.parser")
         file_dates = data.find_all('div', class_='field-content')
         file_names = data.find_all('h3')
 
@@ -56,12 +59,14 @@ def scrape_agendas(total=5):
         meetings[i][1] = meetings[i][1].strftime('%a %m/%d %H:%M')
     return meetings[-total:]
 
-
-def check_if_new(amount=5, force=False, *_):
+async def check_if_new(amount=5, force=False, *_):
     """Checks if there's a difference in latest_agenda.txt and newly pulled data from scrape_agendas."""
 
     agenda_data = scrape_agendas(amount)
-    if not agenda_data: return False  # If no data was recieved from scrape_agendas()
+    if not agenda_data:
+        lprint("Error scraping site.")
+        await priv_channel.send("**Error:** Problem scraping website.")
+        return False  # If no data was recieved from scrape_agendas()
     if force: return agenda_data  # Returns data without checking against agenda_file.
 
     if not os.path.isfile(agenda_file):
@@ -104,14 +109,13 @@ async def check_hourly():
     message = await main_channel.fetch_message(main_channel.last_message_id)
     ctx = await bot.get_context(message)
 
-    if check_if_new(5):  # Checks newly scraped data is different from latest_agendas.txt file.
-        await ctx.invoke(bot.get_command('check_agendas'), show_buttons=False)
+    await ctx.invoke(bot.get_command('check_agendas'), show_buttons=False)
 
 @bot.command(aliases=['fetch', 'check'])
 async def check_agendas(ctx, amount=5, force=False, show_buttons=True):
     """Shows current agendas in embed if new ones found."""
 
-    if agenda := check_if_new(amount, force):
+    if agenda := await check_if_new(amount, force):
         await ctx.send('New Agendas Found.')
         embed = discord.Embed(title='Latest Agendas')
         for i in range(len(agenda)):
@@ -128,12 +132,14 @@ async def check_agendas(ctx, amount=5, force=False, show_buttons=True):
 
 @bot.command(aliases=['get', 'agendas'])
 async def get_agendas(ctx):
-    """Shows agendas."""
+    """Shows agendas even if no new ones found."""
+
     await ctx.invoke(bot.get_command('check_agendas'), force=True)
 
 @bot.command(aliases=['rbot', 'rebootbot', 'botrestart', 'botreboot'])
 async def restartbot(ctx, now=''):
     """Restart this bot."""
+
     lprint("Restarting bot...")
     os.chdir(os.getcwd())
     os.execl(sys.executable, sys.executable, *sys.argv)
@@ -141,10 +147,10 @@ async def restartbot(ctx, now=''):
 @commands.command(aliases=['updatebot', 'botupdate', 'git', 'update'])
 async def gitupdate(self, ctx):
     """Gets update from GitHub."""
+
     await ctx.send("***Updating from GitHub...*** :arrows_counterclockwise:")
     os.chdir(os.getcwd())
     os.system('git pull')
     await ctx.invoke(self.bot.get_command("restartbot"))
-
 
 bot.run(TOKEN)
