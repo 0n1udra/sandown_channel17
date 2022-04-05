@@ -112,7 +112,7 @@ async def check_hourly():
     await ctx.invoke(bot.get_command('check_agendas'), show_buttons=False)
 
 @bot.command(aliases=['fetch', 'check'])
-async def check_agendas(ctx, amount=5, force=False, show_buttons=True):
+async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
     """Shows current agendas in embed if new ones found."""
 
     if agenda := await check_if_new(amount, force):
@@ -121,9 +121,11 @@ async def check_agendas(ctx, amount=5, force=False, show_buttons=True):
         for i in range(len(agenda)):
             embed.add_field(name=agenda[i][0], value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}', inline=False)
         await ctx.send(embed=embed)
-    else: await ctx.send('No new agendas found.')
+    else:
+        if not from_check_hourly:
+            await ctx.send('No new agendas found.')
 
-    if show_buttons:
+    if not from_check_hourly:
         await ctx.send(content='Click to check for new agendas, or use `.check`',
                        components=[[Button(label="Check for new", emoji='\U0001F504', custom_id="check_agendas"),
                                    Button(label="Show current", emoji='\U00002B07', custom_id="get_agendas"), ]])
@@ -144,7 +146,7 @@ async def restartbot(ctx, now=''):
     os.chdir(os.getcwd())
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-@commands.command(aliases=['updatebot', 'botupdate', 'git', 'update'])
+@bot.command(aliases=['updatebot', 'botupdate', 'git', 'update'])
 async def gitupdate(self, ctx):
     """Gets update from GitHub."""
 
