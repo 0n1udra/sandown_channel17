@@ -105,24 +105,24 @@ async def check_hourly():
     ctx = await bot.get_context(message)
 
     if check_if_new(5):  # Checks newly scraped data is different from latest_agendas.txt file.
-        await ctx.invoke(bot.get_command('check_agendas'))
+        await ctx.invoke(bot.get_command('check_agendas'), show_buttons=False)
 
 @bot.command(aliases=['fetch', 'check'])
-async def check_agendas(ctx, amount=5, force=False):
+async def check_agendas(ctx, amount=5, force=False, show_buttons=True):
     """Shows current agendas in embed if new ones found."""
 
-    await ctx.send('***Checking...***')
     if agenda := check_if_new(amount, force):
+        await ctx.send('New Agendas Found.')
         embed = discord.Embed(title='Latest Agendas')
         for i in range(len(agenda)):
             embed.add_field(name=agenda[i][0], value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}', inline=False)
         await ctx.send(embed=embed)
-        #await main_channel.send(embed=embed)
     else: await ctx.send('No new agendas found.')
 
-    await ctx.send(content='Click to check for new agendas, or use `.check`',
-                   components=[[Button(label="Check for new", emoji='\U0001F504', custom_id="check_agendas"),
-                               Button(label="Show current", emoji='\U00002B07', custom_id="get_agendas"), ]])
+    if show_buttons:
+        await ctx.send(content='Click to check for new agendas, or use `.check`',
+                       components=[[Button(label="Check for new", emoji='\U0001F504', custom_id="check_agendas"),
+                                   Button(label="Show current", emoji='\U00002B07', custom_id="get_agendas"), ]])
 
     lprint("Fetched Agenda")
 

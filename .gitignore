@@ -8,3 +8,5 @@
 *.swp
 
 source/latest_agendas.txt
+
+.DS_Store
