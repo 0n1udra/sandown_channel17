@@ -107,7 +107,9 @@ async def on_button_click(interaction):
 @tasks.loop(hours=6)
 async def check_hourly():
     lprint('Check Task')
-    message = await main_channel.fetch_message(main_channel.last_message_id)
+    try:
+        message = await main_channel.fetch_message(main_channel.last_message_id)
+    except: return
     ctx = await bot.get_context(message)
 
     await ctx.invoke(bot.get_command('check_agendas'), from_check_hourly=True)
@@ -152,7 +154,7 @@ async def gitupdate(ctx):
     """Gets update from GitHub."""
 
     await ctx.send("***Updating from GitHub...*** :arrows_counterclockwise:")
-    os.chdir(os.getcwd())
+    os.chdir(bot_path)
     os.system('git pull')
     await ctx.invoke(bot.get_command("restartbot"))
 
