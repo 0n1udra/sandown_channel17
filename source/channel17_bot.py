@@ -5,7 +5,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 token_file = f'{os.getenv("HOME")}/keys/channel17_bot.token'
-agenda_file = os.path.dirname(os.path.abspath(__file__)) + '/latest_agendas.txt'
+bot_path = os.path.dirname(os.path.abspath(__file__))
+agenda_file = bot_path + '/latest_agendas.txt'
 main_channel_id = 745699017811296319
 priv_channel_id = 953008727814987887
 
@@ -109,7 +110,7 @@ async def check_hourly():
     message = await main_channel.fetch_message(main_channel.last_message_id)
     ctx = await bot.get_context(message)
 
-    await ctx.invoke(bot.get_command('check_agendas'), show_buttons=False)
+    await ctx.invoke(bot.get_command('check_agendas'), from_check_hourly=True)
 
 @bot.command(aliases=['fetch', 'check'])
 async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
@@ -143,16 +144,16 @@ async def restartbot(ctx, now=''):
     """Restart this bot."""
 
     lprint("Restarting bot...")
-    os.chdir(os.getcwd())
+    os.chdir(bot_path)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 @bot.command(aliases=['updatebot', 'botupdate', 'git', 'update'])
-async def gitupdate(self, ctx):
+async def gitupdate(ctx):
     """Gets update from GitHub."""
 
     await ctx.send("***Updating from GitHub...*** :arrows_counterclockwise:")
     os.chdir(os.getcwd())
     os.system('git pull')
-    await ctx.invoke(self.bot.get_command("restartbot"))
+    await ctx.invoke(bot.get_command("restartbot"))
 
 bot.run(TOKEN)
