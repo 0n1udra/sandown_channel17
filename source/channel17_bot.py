@@ -146,7 +146,6 @@ async def restartbot(ctx, now=''):
     """Restart this bot."""
 
     lprint("Restarting bot...")
-    os.chdir(bot_path)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 @bot.command(aliases=['updatebot', 'botupdate', 'git', 'update'])

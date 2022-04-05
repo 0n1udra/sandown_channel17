@@ -6,9 +6,8 @@ from datetime import datetime
 
 token_file = f'{os.getenv("HOME")}/keys/channel17_beta.token'
 bot_path = os.path.dirname(os.path.abspath(__file__))
-print(bot_path)
-print(os.path.abspath(__file__))
-print(__file__)
+os.chdir(bot_path)
+print(os.getcwd())
 agenda_file = bot_path + '/latest_agendas.txt'
 beta_channel_id = 745829311239553047
 
@@ -105,7 +104,7 @@ async def on_button_click(interaction):
     ctx = await bot.get_context(interaction.message)
     await ctx.invoke(bot.get_command(str(interaction.custom_id)))
 
-@tasks.loop(seconds=5)
+@tasks.loop(hours=6)
 async def check_hourly():
     lprint('Check Task')
     try:
@@ -147,6 +146,8 @@ async def restartbot(ctx, now=''):
     """Restart this bot."""
 
     lprint("Restarting bot...")
+    #os.chdir(bot_path)
+    #print(os.getcwd())
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 @bot.command(aliases=['updatebot', 'botupdate', 'git', 'update'])
