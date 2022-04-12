@@ -118,7 +118,9 @@ async def check_hourly():
 async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
     """Shows current agendas in embed if new ones found."""
 
+    found_agendas = False
     if agenda := await check_if_new(amount, force):
+        found_agendas = True
         await ctx.send('New Agendas Found.')
         embed = discord.Embed(title='Latest Agendas')
         for i in range(len(agenda)):
@@ -128,7 +130,7 @@ async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
         if not from_check_hourly:
             await ctx.send('No new agendas found.')
 
-    if not from_check_hourly:
+    if not from_check_hourly or found_agendas:
         await ctx.send(content='Click to check for new agendas, or use `.check`',
                        components=[[Button(label="Check for new", emoji='\U0001F504', custom_id="check_agendas"),
                                    Button(label="Show current", emoji='\U00002B07', custom_id="get_agendas"), ]])
@@ -146,6 +148,8 @@ async def restartbot(ctx, now=''):
     """Restart this bot."""
 
     lprint("Restarting bot...")
+    os.chdir('/')
+    os.chdir(bot_path)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 @bot.command(aliases=['updatebot', 'botupdate', 'git', 'update'])
