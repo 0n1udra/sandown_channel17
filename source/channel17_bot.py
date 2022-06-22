@@ -4,6 +4,13 @@ from discord_components import DiscordComponents, Button, ButtonStyle,  Select, 
 from bs4 import BeautifulSoup
 from datetime import datetime
 
+__version__ = "2.0"
+__date__ = '2022/06/21'
+__author__ = "DT"
+__email__ = "dt01@pm.me"
+__license__ = "GPL 3"
+__status__ = "Development"
+
 token_file = f'{os.getenv("HOME")}/keys/channel17_bot.token'
 bot_path = os.path.dirname(os.path.abspath(__file__))
 agenda_file = bot_path + '/latest_agendas.txt'
@@ -19,6 +26,7 @@ else:
 bot = ComponentsBot(command_prefix='.')
 
 def lprint(msg): print(f'{datetime.today()} | {msg}')
+
 
 # ========== Web Scraper
 def scrape_agendas(total=5):
@@ -90,10 +98,11 @@ main_channel = priv_channel = None
 @bot.event
 async def on_ready():
     global main_channel, priv_channel
-    lprint("Bot Connected.")
+    lprint("Bot Connected")
     await bot.wait_until_ready()
     main_channel = bot.get_channel(main_channel_id)
     priv_channel = bot.get_channel(priv_channel_id)
+    await priv_channel.send(f':white_check_mark: v{__version__} **Bot PRIMED** {datetime.now().strftime("%X")}')
     await priv_channel.send('**Bot PRIMED** :white_check_mark:')
     check_hourly.start()
 
