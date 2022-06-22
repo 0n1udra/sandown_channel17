@@ -66,7 +66,7 @@ async def check_if_new(amount=5, force=False, *_):
 
     agenda_data = scrape_agendas(amount)
     if not agenda_data:
-        lprint("Error scraping site.")
+        lprint(ctx, "Error scraping site")
         await priv_channel.send("**Error:** Problem scraping website.")
         return False  # If no data was recieved from scrape_agendas()
     if force: return agenda_data  # Returns data without checking against agenda_file.
@@ -91,7 +91,7 @@ main_channel = priv_channel = None
 @bot.event
 async def on_ready():
     global main_channel, priv_channel
-    lprint("Bot Connected.")
+    lprint(ctx, "Bot Connected.")
     await bot.wait_until_ready()
     priv_channel = bot.get_channel(beta_channel_id)
     await priv_channel.send('**Bot PRIMED** :white_check_mark:')
@@ -133,7 +133,7 @@ async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
                        components=[[Button(label="Check for new", emoji='\U0001F504', custom_id="check_agendas"),
                                     Button(label="Show current", emoji='\U00002B07', custom_id="get_agendas"), ]])
 
-    lprint("Fetched Agenda")
+    lprint(ctx, "Fetched Agenda")
 
 @bot.command(aliases=['get', 'agendas'])
 async def get_agendas(ctx):
@@ -145,7 +145,7 @@ async def get_agendas(ctx):
 async def restartbot(ctx, now=''):
     """Restart this bot."""
 
-    lprint("Restarting bot...")
+    lprint(ctx, "Restarting bot...")
     #os.chdir(bot_path)
     #print(os.getcwd())
     os.execl(sys.executable, sys.executable, *sys.argv)
