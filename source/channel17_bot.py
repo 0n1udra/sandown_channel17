@@ -103,7 +103,6 @@ async def on_ready():
     main_channel = bot.get_channel(main_channel_id)
     priv_channel = bot.get_channel(priv_channel_id)
     await priv_channel.send(f':white_check_mark: v{__version__} **Bot PRIMED** {datetime.now().strftime("%X")}')
-    await priv_channel.send('**Bot PRIMED** :white_check_mark:')
     check_hourly.start()
 
 @bot.event
