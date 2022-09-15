@@ -1,11 +1,10 @@
 import requests, discord, random, sys, os
 from discord.ext import commands, tasks
-from discord_components import DiscordComponents, Button, ButtonStyle,  Select, SelectOption, ComponentsBot
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-__version__ = "2.0"
-__date__ = '2022/06/21'
+__version__ = "3.0"
+__date__ = '2022/09/15'
 __author__ = "DT"
 __email__ = "dt01@pm.me"
 __license__ = "GPL 3"
@@ -23,7 +22,9 @@ else:
     print("Missing Token File:", token_file)
     sys.exit()
 
-bot = ComponentsBot(command_prefix='.')
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix='.', case_insensitive=True, intents=intents)
 
 def lprint(msg): print(f'{datetime.today()} | {msg}')
 
@@ -105,12 +106,31 @@ async def on_ready():
     await priv_channel.send(f':white_check_mark: v{__version__} **Bot PRIMED** {datetime.now().strftime("%X")}')
     check_hourly.start()
 
-@bot.event
-async def on_button_click(interaction):
-    # Need to respond with type=6, or proceeding code will execute twice.
-    await interaction.respond(type=6)
-    ctx = await bot.get_context(interaction.message)
-    await ctx.invoke(bot.get_command(str(interaction.custom_id)))
+class Discord_Button(discord.ui.Button):
+    """
+    Create button from received list containing label, custom_id, and emoji.
+    Uses custom_id with ctx.invoke to call corresponding function.
+    """
+
+    def __init__(self, label, custom_id, emoji=None, style=discord.ButtonStyle.grey):
+        super().__init__(label=label, custom_id=custom_id, emoji=emoji, style=style)
+
+    async def callback(self, interaction):
+        await interaction.response.defer()
+        custom_id = interaction.data['custom_id']
+
+        # Runs function of same name as button's .custom_id variable. e.g. _teleport_selected()
+        ctx = await bot.get_context(interaction.message)  # Get ctx from message.
+        await ctx.invoke(bot.get_command(custom_id))
+
+def new_buttons(buttons_list):
+    """Create new discord.ui.View and add buttons, then return said view."""
+
+    view = discord.ui.View(timeout=None)
+    for button in buttons_list:
+        if len(button) == 2: button.append(None)  # For button with no emoji.
+        view.add_item(Discord_Button(label=button[0], custom_id=button[1], emoji=button[2]))
+    return view
 
 @tasks.loop(hours=6)
 async def check_hourly():
@@ -139,9 +159,8 @@ async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
             await ctx.send('No new agendas found.')
 
     if not from_check_hourly or found_agendas:
-        await ctx.send(content='Click to check for new agendas, or use `.check`',
-                       components=[[Button(label="Check for new", emoji='\U0001F504', custom_id="check_agendas"),
-                                   Button(label="Show current", emoji='\U00002B07', custom_id="get_agendas"), ]])
+        buttons = [['Check for new', 'check_agendas', '\U0001F504'], ['Get current agendas', 'get_agendas', '\U00002B07']]
+        await ctx.send('Check for new agendas or show latest ones. Can also use `.check`.', view=new_buttons(buttons))
 
     lprint("Fetched Agenda")
 
