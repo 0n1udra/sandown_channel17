@@ -79,18 +79,20 @@ async def check_if_new(amount=5, force=False, *_):
         return False  # If no data was recieved from scrape_agendas()
     if force: return agenda_data  # Returns data without checking against agenda_file.
 
+    # Create file if not exist.
     if not os.path.isfile(agenda_file):
         new_file = open(agenda_file, 'w')
         new_file.close()
 
-    read_data = ''
-    with open(agenda_file, 'r') as file:
-        read_data = file.readlines()
+    # Read contents of file
+    with open(agenda_file, 'r') as file: read_data = file.readlines()
 
+    # Compares data to see if fetched anything new.
     if str(agenda_data) not in read_data:
         with open(agenda_file, 'w') as file:
             file.write(str(agenda_data))
-            return agenda_data
+        #with open(log_file, 'a') as file: file.write(f'\n{datetime.today()}\n{str(agenda_data)}')
+        return agenda_data
     else: return False
 
 # ========== Discord Bot
@@ -132,7 +134,7 @@ def new_buttons(buttons_list):
         view.add_item(Discord_Button(label=button[0], custom_id=button[1], emoji=button[2]))
     return view
 
-@tasks.loop(hours=6)
+@tasks.loop(hours=2)
 async def check_hourly():
     lprint('Check Task')
     try:
@@ -154,6 +156,7 @@ async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
         for i in range(len(agenda)):
             embed.add_field(name=agenda[i][0], value=f'Date: {agenda[i][1]}\nLink: {agenda[i][2]}', inline=False)
         await ctx.send(embed=embed)
+        lprint("New agendas found")
     else:
         if not from_check_hourly:
             await ctx.send('No new agendas found.')
@@ -162,7 +165,7 @@ async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
         buttons = [['Check for new', 'check_agendas', '\U0001F504'], ['Get current agendas', 'get_agendas', '\U00002B07']]
         await ctx.send('Check for new agendas or show latest ones. Can also use `.check`.', view=new_buttons(buttons))
 
-    lprint("Fetched Agenda")
+    lprint("Fetched agenda")
 
 @bot.command(aliases=['get', 'agendas'])
 async def get_agendas(ctx):
