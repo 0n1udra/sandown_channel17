@@ -91,7 +91,7 @@ async def check_if_new(amount=5, force=False, *_):
     if str(agenda_data) not in read_data:
         with open(agenda_file, 'w') as file:
             file.write(str(agenda_data))
-        #with open(log_file, 'a') as file: file.write(f'\n{datetime.today()}\n{str(agenda_data)}')
+        #with open(log_filepath, 'a') as file: file.write(f'\n{datetime.today()}\n{str(agenda_data)}')
         return agenda_data
     else: return False
 
@@ -106,6 +106,7 @@ async def on_ready():
     main_channel = bot.get_channel(main_channel_id)
     priv_channel = bot.get_channel(priv_channel_id)
     await priv_channel.send(f':white_check_mark: v{__version__} **Bot PRIMED** {datetime.now().strftime("%X")}')
+    await show_buttons(priv_channel)
     check_hourly.start()
 
 class Discord_Button(discord.ui.Button):
@@ -133,6 +134,12 @@ def new_buttons(buttons_list):
         if len(button) == 2: button.append(None)  # For button with no emoji.
         view.add_item(Discord_Button(label=button[0], custom_id=button[1], emoji=button[2]))
     return view
+
+
+async def show_buttons(ctx):
+    buttons = [['Check for new', 'check_agendas', '\U0001F504'], ['Get current agendas', 'get_agendas', '\U00002B07']]
+    await ctx.send('Check for new agendas or show latest ones. Can also use `.check`.', view=new_buttons(buttons))
+
 
 @tasks.loop(hours=2)
 async def check_hourly():
@@ -162,8 +169,7 @@ async def check_agendas(ctx, amount=5, force=False, from_check_hourly=False):
             await ctx.send('No new agendas found.')
 
     if not from_check_hourly or found_agendas:
-        buttons = [['Check for new', 'check_agendas', '\U0001F504'], ['Get current agendas', 'get_agendas', '\U00002B07']]
-        await ctx.send('Check for new agendas or show latest ones. Can also use `.check`.', view=new_buttons(buttons))
+        await show_buttons(ctx)
 
     lprint("Fetched agenda")
 
