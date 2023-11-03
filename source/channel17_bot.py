@@ -1,14 +1,19 @@
-import requests, discord, random, sys, os
-from discord.ext import commands, tasks
+import os
+import sys
+import random
+import asyncio
+import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 
+import discord
+from discord.ext import commands, tasks
+
 __version__ = "3.0"
-__date__ = '2022/09/15'
-__author__ = "DT"
-__email__ = "dt01@pm.me"
+__date__ = '02/11/2023'
 __license__ = "GPL 3"
-__status__ = "Development"
+__author__ = 'github.com/0n1udra'
+__email__ = "dt01@pm.me"
 
 token_file = f'{os.getenv("HOME")}/keys/channel17_bot.token'
 bot_path = os.path.dirname(os.path.abspath(__file__))
@@ -197,4 +202,4 @@ async def gitupdate(ctx):
     os.system('git pull')
     await ctx.invoke(bot.get_command("restartbot"))
 
-bot.run(TOKEN)
+bot.run(TOKEN, reconnect=True)
